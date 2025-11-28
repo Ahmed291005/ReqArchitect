@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -13,7 +14,6 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
-import React from 'react';
 
 const formSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty'),

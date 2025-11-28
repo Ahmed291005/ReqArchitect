@@ -5,6 +5,7 @@ import { ChatAvatar } from './chat-avatar';
 import { Skeleton } from '../ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import React from 'react';
 
 interface ChatMessageProps {
   message: Message;
@@ -40,6 +41,24 @@ function ClassifiedRequirementItem({ item }: { item: any }) {
             <Badge variant={item.type === 'functional' ? 'outline' : 'secondary'}>{item.type}</Badge>
         </li>
     );
+}
+
+function Timestamp({ date }: { date: Date }) {
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return (
+    <span className="text-xs text-muted-foreground">
+      {format(date, 'h:mm a')}
+    </span>
+  );
 }
 
 export function ChatMessage({ message, isLoading }: ChatMessageProps) {
@@ -101,9 +120,7 @@ export function ChatMessage({ message, isLoading }: ChatMessageProps) {
           )}
 
         </div>
-        <span className="text-xs text-muted-foreground">
-          {format(message.createdAt, 'h:mm a')}
-        </span>
+        <Timestamp date={message.createdAt} />
       </div>
     </div>
   );
