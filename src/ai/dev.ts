@@ -1,1 +1,6 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/classify-requirements.ts';
+import '@/ai/flows/generate-requirements-from-prompt.ts';
+import '@/ai/flows/improve-requirements.ts';
