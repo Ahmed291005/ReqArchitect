@@ -17,6 +17,10 @@ import {
   identifyStakeholders as identifyStakeholdersFlow,
   IdentifyStakeholdersOutput,
 } from '@/ai/flows/identify-stakeholders';
+import {
+  speakRequirements as speakRequirementsFlow,
+  SpeakRequirementsOutput,
+} from '@/ai/flows/speak-requirements';
 import type { Requirement, ClassifiedRequirement, Stakeholder } from '@/lib/types';
 
 export async function generateInitialRequirements(
@@ -109,5 +113,12 @@ export async function identifyStakeholders(
   const result = await identifyStakeholdersFlow({
     requirements: requirementDescriptions,
   });
+  return result;
+}
+
+export async function speakRequirements(
+  requirements: Requirement[]
+): Promise<SpeakRequirementsOutput> {
+  const result = await speakRequirementsFlow({ requirements });
   return result;
 }

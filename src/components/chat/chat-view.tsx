@@ -7,13 +7,14 @@ import {
   classifyRequirements,
   generateUserStories,
   identifyStakeholders,
+  speakRequirements,
 } from '@/app/actions';
 import type { Requirement, Message, ClassifiedRequirement } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { ChatMessage } from './chat-message';
-import { Code2, Bot, Users, UserCog } from 'lucide-react';
+import { Code2, Bot, Users, UserCog, Volume2 } from 'lucide-react';
 import { ThemeToggle } from '../theme-toggle';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,7 +35,9 @@ export function ChatView() {
     ClassifiedRequirement[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
   const hasBeenClassified = classifiedRequirements.length > 0;
@@ -47,6 +50,12 @@ export function ChatView() {
       });
     }
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (audioUrl && audioRef.current) {
+      audioRef.current.play();
+    }
+  }, [audioUrl]);
 
   const handleSendMessage = async (input: string) => {
     const userMessage: Message = {
@@ -209,6 +218,39 @@ export function ChatView() {
     }
   };
 
+  const handleSpeakRequirements = async () => {
+    if (requirements.length === 0) {
+      toast({
+        title: 'No requirements to speak',
+        description:
+          'Please generate some requirements first.',
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const result = await speakRequirements(requirements);
+      setAudioUrl(result.audio);
+      const assistantResponse: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: "I'm reading the requirements out loud now.",
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, assistantResponse]);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred.';
+      toast({
+        variant: 'destructive',
+        title: 'Failed to generate audio',
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex h-[100dvh] w-full flex-col">
       <header className="flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm">
@@ -268,6 +310,15 @@ export function ChatView() {
                 <UserCog className="mr-2 h-4 w-4" />
                 Identify Stakeholders
               </Button>
+               <Button
+                variant="outline"
+                onClick={handleSpeakRequirements}
+                disabled={isLoading || requirements.length === 0}
+                className="shrink-0"
+              >
+                <Volume2 className="mr-2 h-4 w-4" />
+                Speak Requirements
+              </Button>
           </div>
           <div className="flex items-start gap-4">
             <ChatInput
@@ -275,6 +326,14 @@ export function ChatView() {
               isLoading={isLoading}
             />
           </div>
+          {audioUrl && (
+            <audio
+              ref={audioRef}
+              src={audioUrl}
+              onEnded={() => setAudioUrl(null)}
+              className="hidden"
+            />
+          )}
         </div>
       </footer>
     </div>
