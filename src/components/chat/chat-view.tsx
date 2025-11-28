@@ -6,13 +6,14 @@ import {
   continueConversation,
   classifyRequirements,
   generateUserStories,
+  identifyStakeholders,
 } from '@/app/actions';
 import type { Requirement, Message, ClassifiedRequirement } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { ChatMessage } from './chat-message';
-import { Code2, Bot, Users } from 'lucide-react';
+import { Code2, Bot, Users, UserCog } from 'lucide-react';
 import { ThemeToggle } from '../theme-toggle';
 import { useToast } from '@/hooks/use-toast';
 
@@ -67,7 +68,7 @@ export function ChatView() {
           id: crypto.randomUUID(),
           role: 'assistant',
           content:
-            "Great! Here are the initial requirements I've generated. You can ask me to add, remove, or modify them. When you are happy, click 'Finalize & Classify'.",
+            "Great! Here are the initial requirements I've generated. You can ask me to add, remove, or modify them. When you are happy, click the buttons below for more analysis.",
           requirements: result.requirements,
           createdAt: new Date(),
         };
@@ -143,7 +144,7 @@ export function ChatView() {
       toast({
         title: 'No classified requirements',
         description:
-          'Please finalize and classify the requirements first.',
+          'Please classify the requirements first.',
       });
       return;
     }
@@ -167,6 +168,40 @@ export function ChatView() {
       toast({
         variant: 'destructive',
         title: 'Failed to Generate User Stories',
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleIdentifyStakeholders = async () => {
+    if (requirements.length === 0) {
+      toast({
+        title: 'No requirements to analyze',
+        description:
+          'Please describe your app idea first to generate some requirements.',
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const result = await identifyStakeholders(requirements);
+      const assistantResponse: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content:
+          "Here are the potential stakeholders I've identified based on the requirements:",
+        stakeholders: result.stakeholders,
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, assistantResponse]);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred.';
+      toast({
+        variant: 'destructive',
+        title: 'Failed to Identify Stakeholders',
         description: errorMessage,
       });
     } finally {
@@ -205,32 +240,40 @@ export function ChatView() {
       </main>
       <footer className="border-t bg-background/95 p-4 backdrop-blur-sm">
         <div className="container mx-auto max-w-3xl">
-          <div className="flex items-start gap-4">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading || hasBeenClassified}
-            />
-            {!hasBeenClassified ? (
-              <Button
+          <div className="mb-2 flex flex-wrap items-start gap-2">
+             <Button
                 variant="outline"
                 onClick={handleFinalize}
                 disabled={isLoading || requirements.length === 0}
                 className="shrink-0"
               >
                 <Code2 className="mr-2 h-4 w-4" />
-                Finalize & Classify
+                Classify Requirements
               </Button>
-            ) : (
               <Button
                 variant="outline"
                 onClick={handleGenerateStories}
-                disabled={isLoading}
+                disabled={isLoading || !hasBeenClassified}
                 className="shrink-0"
               >
                 <Users className="mr-2 h-4 w-4" />
                 Generate User Stories
               </Button>
-            )}
+              <Button
+                variant="outline"
+                onClick={handleIdentifyStakeholders}
+                disabled={isLoading || requirements.length === 0}
+                className="shrink-0"
+              >
+                <UserCog className="mr-2 h-4 w-4" />
+                Identify Stakeholders
+              </Button>
+          </div>
+          <div className="flex items-start gap-4">
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </footer>

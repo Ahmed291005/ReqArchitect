@@ -13,7 +13,11 @@ import {
   generateUserStories as generateUserStoriesFlow,
   GenerateUserStoriesOutput,
 } from '@/ai/flows/generate-user-stories';
-import type { Requirement, ClassifiedRequirement } from '@/lib/types';
+import {
+  identifyStakeholders as identifyStakeholdersFlow,
+  IdentifyStakeholdersOutput,
+} from '@/ai/flows/identify-stakeholders';
+import type { Requirement, ClassifiedRequirement, Stakeholder } from '@/lib/types';
 
 export async function generateInitialRequirements(
   prompt: string
@@ -94,6 +98,16 @@ export async function generateUserStories(
 
   const result = await generateUserStoriesFlow({
     requirements: functionalRequirements,
+  });
+  return result;
+}
+
+export async function identifyStakeholders(
+  requirements: Requirement[]
+): Promise<IdentifyStakeholdersOutput> {
+  const requirementDescriptions = requirements.map(r => r.description);
+  const result = await identifyStakeholdersFlow({
+    requirements: requirementDescriptions,
   });
   return result;
 }

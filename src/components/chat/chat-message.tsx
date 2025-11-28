@@ -1,4 +1,4 @@
-import type { Message, UserStory } from '@/lib/types';
+import type { Message, UserStory, Stakeholder } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ChatAvatar } from './chat-avatar';
@@ -12,7 +12,7 @@ import {
 } from '../ui/card';
 import { Badge } from '../ui/badge';
 import React from 'react';
-import { ListChecks } from 'lucide-react';
+import { ListChecks, UserCog } from 'lucide-react';
 
 interface ChatMessageProps {
   message: Message;
@@ -91,6 +91,23 @@ function UserStoryCard({ userStory }: { userStory: UserStory }) {
     </Card>
   );
 }
+
+function StakeholderCard({ stakeholder }: { stakeholder: Stakeholder }) {
+  return (
+    <Card className="bg-background/50">
+      <CardHeader className="p-4">
+        <CardTitle className="text-base flex items-center gap-2">
+          <UserCog className="h-5 w-5 text-primary" />
+          {stakeholder.role}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 pt-0">
+        <p className="text-sm text-muted-foreground">{stakeholder.description}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 
 function Timestamp({ date }: { date: Date }) {
   const [isMounted, setIsMounted] = React.useState(false);
@@ -171,6 +188,13 @@ export function ChatMessage({ message, isLoading }: ChatMessageProps) {
             <div className="mt-4 space-y-2 max-w-xl">
               {message.userStories.map((story, i) => (
                 <UserStoryCard key={i} userStory={story} />
+              ))}
+            </div>
+          )}
+           {message.stakeholders && (
+            <div className="mt-4 space-y-2 max-w-xl">
+              {message.stakeholders.map((stakeholder, i) => (
+                <StakeholderCard key={i} stakeholder={stakeholder} />
               ))}
             </div>
           )}

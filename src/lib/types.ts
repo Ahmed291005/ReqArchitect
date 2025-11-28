@@ -17,6 +17,11 @@ export type UserStory = {
   acceptanceCriteria: string[];
 };
 
+export type Stakeholder = {
+  role: string;
+  description: string;
+};
+
 export type Message = {
   id: string;
   role: 'user' | 'assistant';
@@ -24,5 +29,6 @@ export type Message = {
   requirements?: Requirement[];
   classifiedRequirements?: ClassifiedRequirement[];
   userStories?: UserStory[];
+  stakeholders?: Stakeholder[];
   createdAt: Date;
 };
