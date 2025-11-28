@@ -10,11 +10,19 @@ export type ClassifiedRequirement = {
   type: 'functional' | 'non-functional';
 };
 
+export type UserStory = {
+  userPersona: string;
+  feature: string;
+  benefit: string;
+  acceptanceCriteria: string[];
+};
+
 export type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   requirements?: Requirement[];
   classifiedRequirements?: ClassifiedRequirement[];
+  userStories?: UserStory[];
   createdAt: Date;
 };

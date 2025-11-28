@@ -9,7 +9,11 @@ import {
   classifyRequirements as classifyRequirementsFlow,
   ClassifyRequirementsOutput,
 } from '@/ai/flows/classify-requirements';
-import type { Requirement } from '@/lib/types';
+import {
+  generateUserStories as generateUserStoriesFlow,
+  GenerateUserStoriesOutput,
+} from '@/ai/flows/generate-user-stories';
+import type { Requirement, ClassifiedRequirement } from '@/lib/types';
 
 export async function generateInitialRequirements(
   prompt: string
@@ -73,6 +77,23 @@ export async function classifyRequirements(
   const requirementDescriptions = requirements.map(r => r.description);
   const result = await classifyRequirementsFlow({
     requirements: requirementDescriptions,
+  });
+  return result;
+}
+
+export async function generateUserStories(
+  classifiedRequirements: ClassifiedRequirement[]
+): Promise<GenerateUserStoriesOutput> {
+  const functionalRequirements = classifiedRequirements
+    .filter(r => r.type === 'functional')
+    .map(r => r.requirement);
+
+  if (functionalRequirements.length === 0) {
+    return { userStories: [] };
+  }
+
+  const result = await generateUserStoriesFlow({
+    requirements: functionalRequirements,
   });
   return result;
 }

@@ -5,14 +5,14 @@ import {
   generateInitialRequirements,
   continueConversation,
   classifyRequirements,
+  generateUserStories,
 } from '@/app/actions';
-import type { Requirement, Message } from '@/lib/types';
+import type { Requirement, Message, ClassifiedRequirement } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { ChatMessage } from './chat-message';
-import { Code2, Bot } from 'lucide-react';
+import { Code2, Bot, Users } from 'lucide-react';
 import { ThemeToggle } from '../theme-toggle';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,9 +29,14 @@ const initialMessages: Message[] = [
 export function ChatView() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [classifiedRequirements, setClassifiedRequirements] = useState<
+    ClassifiedRequirement[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const hasBeenClassified = classifiedRequirements.length > 0;
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -110,11 +115,12 @@ export function ChatView() {
     setIsLoading(true);
     try {
       const result = await classifyRequirements(requirements);
+      setClassifiedRequirements(result.classifiedRequirements);
       const assistantResponse: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content:
-          "I've classified the requirements into functional and non-functional categories. Here is the final list:",
+          "I've classified the requirements into functional and non-functional categories. You can now generate user stories from the functional requirements.",
         classifiedRequirements: result.classifiedRequirements,
         createdAt: new Date(),
       };
@@ -125,6 +131,42 @@ export function ChatView() {
       toast({
         variant: 'destructive',
         title: 'Classification Failed',
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateStories = async () => {
+    if (classifiedRequirements.length === 0) {
+      toast({
+        title: 'No classified requirements',
+        description:
+          'Please finalize and classify the requirements first.',
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const result = await generateUserStories(classifiedRequirements);
+      const assistantResponse: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content:
+          result.userStories.length > 0
+            ? "Here are the user stories I've generated based on the functional requirements:"
+            : 'There were no functional requirements to generate user stories from.',
+        userStories: result.userStories,
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, assistantResponse]);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred.';
+      toast({
+        variant: 'destructive',
+        title: 'Failed to Generate User Stories',
         description: errorMessage,
       });
     } finally {
@@ -166,17 +208,29 @@ export function ChatView() {
           <div className="flex items-start gap-4">
             <ChatInput
               onSendMessage={handleSendMessage}
-              isLoading={isLoading}
+              isLoading={isLoading || hasBeenClassified}
             />
-            <Button
-              variant="outline"
-              onClick={handleFinalize}
-              disabled={isLoading || requirements.length === 0}
-              className="shrink-0"
-            >
-              <Code2 className="mr-2 h-4 w-4" />
-              Finalize & Classify
-            </Button>
+            {!hasBeenClassified ? (
+              <Button
+                variant="outline"
+                onClick={handleFinalize}
+                disabled={isLoading || requirements.length === 0}
+                className="shrink-0"
+              >
+                <Code2 className="mr-2 h-4 w-4" />
+                Finalize & Classify
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={handleGenerateStories}
+                disabled={isLoading}
+                className="shrink-0"
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Generate User Stories
+              </Button>
+            )}
           </div>
         </div>
       </footer>
