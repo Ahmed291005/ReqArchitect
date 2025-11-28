@@ -13,7 +13,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
-import type React from 'react';
+import React from 'react';
 
 const formSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty'),
