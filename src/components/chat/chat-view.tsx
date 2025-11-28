@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import {
-  generateInitialRequirements,
   continueConversation,
   classifyRequirements,
   generateUserStories,
@@ -17,16 +16,77 @@ import { ChatMessage } from './chat-message';
 import { Code2, Bot, Users, UserCog, Volume2 } from 'lucide-react';
 import { ThemeToggle } from '../theme-toggle';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
+import { Badge } from '../ui/badge';
 
 const initialMessages: Message[] = [
   {
     id: crypto.randomUUID(),
     role: 'assistant',
     content:
-      "Hello! I'm ReqBot, your personal business analyst. Describe your application idea, and I'll help you generate a set of initial requirements.",
+      "Hello! I'm ReqBot, your personal business analyst. To start, please describe your application idea.",
     createdAt: new Date(),
   },
 ];
+
+function RequirementsDisplay({
+  requirements,
+}: {
+  requirements: Requirement[];
+}) {
+  if (requirements.length === 0) return null;
+
+  const priorityVariant = {
+    high: 'destructive',
+    medium: 'default',
+    low: 'secondary',
+  } as const;
+
+  return (
+    <>
+      <Card className="mt-4 w-full">
+        <CardHeader>
+          <CardTitle>Current Requirements</CardTitle>
+          <CardDescription>
+            Here is the list of requirements we've built so far.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {requirements.map(req => (
+              <li
+                key={req.id}
+                className="flex items-start justify-between rounded-lg border p-3"
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{req.description}</p>
+                  <p className="text-xs text-muted-foreground">{req.type}</p>
+                </div>
+                <Badge
+                  variant={
+                    priorityVariant[
+                      req.priority as keyof typeof priorityVariant
+                    ]
+                  }
+                  className="ml-4"
+                >
+                  {req.priority}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    </>
+  );
+}
+
 
 export function ChatView() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -41,7 +101,7 @@ export function ChatView() {
   const { toast } = useToast();
 
   const hasBeenClassified = classifiedRequirements.length > 0;
-
+  
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo({
@@ -65,34 +125,30 @@ export function ChatView() {
       createdAt: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages: Message[] = [...messages, userMessage];
+    setMessages(newMessages);
     setIsLoading(true);
 
     try {
-      let assistantResponse: Message;
-      if (requirements.length === 0) {
-        const result = await generateInitialRequirements(input);
-        setRequirements(result.requirements);
-        assistantResponse = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content:
-            "Great! Here are the initial requirements I've generated. You can ask me to add, remove, or modify them. When you are happy, click the buttons below for more analysis.",
-          requirements: result.requirements,
-          createdAt: new Date(),
-        };
-      } else {
-        const result = await continueConversation(input, requirements);
-        setRequirements(result.requirements);
-        assistantResponse = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: 'I have updated the requirements based on your feedback.',
-          requirements: result.requirements,
-          createdAt: new Date(),
-        };
-      }
-      setMessages(prev => [...prev, assistantResponse]);
+        const conversationForAI = newMessages.map(
+          // Strip out the complex data fields before sending to the AI
+          ({ requirements, classifiedRequirements, userStories, stakeholders, ...rest }) => rest
+        );
+      
+        const result = await continueConversation(conversationForAI);
+
+        const updatedRequirements = result.updatedRequirements || [];
+        setRequirements(updatedRequirements);
+
+        const assistantResponse: Message = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: result.followUpQuestion,
+            createdAt: new Date(),
+          };
+
+        setMessages(prev => [...prev, assistantResponse]);
+
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'An unknown error occurred.';
@@ -152,8 +208,7 @@ export function ChatView() {
     if (classifiedRequirements.length === 0) {
       toast({
         title: 'No classified requirements',
-        description:
-          'Please classify the requirements first.',
+        description: 'Please classify the requirements first.',
       });
       return;
     }
@@ -222,8 +277,7 @@ export function ChatView() {
     if (requirements.length === 0) {
       toast({
         title: 'No requirements to speak',
-        description:
-          'Please generate some requirements first.',
+        description: 'Please generate some requirements first.',
       });
       return;
     }
@@ -256,34 +310,45 @@ export function ChatView() {
       <header className="flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <Bot className="h-6 w-6 text-primary" />
-          <h1 className="text-lg font-semibold tracking-tight font-headline">ReqBot Chat</h1>
+          <h1 className="text-lg font-semibold tracking-tight font-headline">
+            ReqBot Chat
+          </h1>
         </div>
         <ThemeToggle />
       </header>
-      <main className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full" ref={scrollAreaRef}>
-          <div className="container mx-auto max-w-3xl space-y-6 p-4">
-            {messages.map(message => (
-              <ChatMessage key={message.id} message={message} />
-            ))}
-            {isLoading && (
-              <ChatMessage
-                message={{
-                  id: 'loading',
-                  role: 'assistant',
-                  content: '',
-                  createdAt: new Date(),
-                }}
-                isLoading
+      <div className="flex flex-1 overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <ScrollArea className="flex-1" ref={scrollAreaRef}>
+            <div className="container mx-auto max-w-3xl space-y-6 p-4">
+              {messages.map(message => (
+                <ChatMessage key={message.id} message={message} />
+              ))}
+              {isLoading && (
+                <ChatMessage
+                  message={{
+                    id: 'loading',
+                    role: 'assistant',
+                    content: '',
+                    createdAt: new Date(),
+                  }}
+                  isLoading
+                />
+              )}
+            </div>
+          </ScrollArea>
+          <div className="border-t bg-background/95 p-4 backdrop-blur-sm">
+            <div className="container mx-auto max-w-3xl">
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
               />
-            )}
+            </div>
           </div>
-        </ScrollArea>
-      </main>
-      <footer className="border-t bg-background/95 p-4 backdrop-blur-sm">
-        <div className="container mx-auto max-w-3xl">
-          <div className="mb-2 flex flex-wrap items-start gap-2">
-             <Button
+        </main>
+        <aside className="w-1/3 border-l overflow-y-auto p-4">
+           <RequirementsDisplay requirements={requirements} />
+           <div className="mt-4 flex flex-col gap-2">
+           <Button
                 variant="outline"
                 onClick={handleFinalize}
                 disabled={isLoading || requirements.length === 0}
@@ -319,23 +384,18 @@ export function ChatView() {
                 <Volume2 className="mr-2 h-4 w-4" />
                 Speak Requirements
               </Button>
-          </div>
-          <div className="flex items-start gap-4">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-            />
-          </div>
-          {audioUrl && (
-            <audio
-              ref={audioRef}
-              src={audioUrl}
-              onEnded={() => setAudioUrl(null)}
-              className="hidden"
-            />
-          )}
-        </div>
-      </footer>
+           </div>
+        </aside>
+      </div>
+
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          onEnded={() => setAudioUrl(null)}
+          className="hidden"
+        />
+      )}
     </div>
   );
 }
