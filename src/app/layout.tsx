@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { AppStateProvider } from '@/context/app-state-provider';
+import { Header } from '@/components/header';
 
 export const metadata: Metadata = {
   title: 'ReqBot Chat',
@@ -34,8 +36,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <AppStateProvider>
+            <div className="flex h-screen w-full flex-col">
+              <Header />
+              {children}
+            </div>
+            <Toaster />
+          </AppStateProvider>
         </ThemeProvider>
       </body>
     </html>

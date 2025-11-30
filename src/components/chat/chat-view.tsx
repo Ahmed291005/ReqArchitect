@@ -8,13 +8,12 @@ import {
   identifyStakeholders,
   speakRequirements,
 } from '@/app/actions';
-import type { Requirement, Message, ClassifiedRequirement } from '@/lib/types';
+import type { Message, ClassifiedRequirement } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { ChatMessage } from './chat-message';
 import { Code2, Bot, Users, UserCog, Volume2 } from 'lucide-react';
-import { ThemeToggle } from '../theme-toggle';
 import { useToast } from '@/hooks/use-toast';
 import {
   Card,
@@ -24,6 +23,8 @@ import {
   CardTitle,
 } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { useAppContext } from '@/context/app-state-provider';
+import type { Requirement } from '@/lib/types';
 
 const initialMessages: Message[] = [
   {
@@ -89,11 +90,13 @@ function RequirementsDisplay({
 
 
 export function ChatView() {
+  const { 
+    requirements, 
+    setRequirements,
+    classifiedRequirements,
+    setClassifiedRequirements,
+   } = useAppContext();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [requirements, setRequirements] = useState<Requirement[]>([]);
-  const [classifiedRequirements, setClassifiedRequirements] = useState<
-    ClassifiedRequirement[]
-  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -181,12 +184,23 @@ export function ChatView() {
     setIsLoading(true);
     try {
       const result = await classifyRequirements(requirements);
+      const requirementMap = new Map(
+        result.classifiedRequirements.map(cr => [cr.requirement, cr.type])
+      );
+      
+      const updatedReqs = requirements.map(req => ({
+        ...req,
+        type: requirementMap.get(req.description) || req.type,
+      }));
+
+      setRequirements(updatedReqs);
       setClassifiedRequirements(result.classifiedRequirements);
+
       const assistantResponse: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content:
-          "I've classified the requirements into functional and non-functional categories. You can now generate user stories from the functional requirements.",
+          "I've classified the requirements and updated the repository. You can view the classified requirements on the Dashboard page or generate user stories from them.",
         classifiedRequirements: result.classifiedRequirements,
         createdAt: new Date(),
       };
@@ -306,87 +320,76 @@ export function ChatView() {
   };
 
   return (
-    <div className="flex h-[100dvh] w-full flex-col">
-      <header className="flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <Bot className="h-6 w-6 text-primary" />
-          <h1 className="text-lg font-semibold tracking-tight font-headline">
-            ReqBot Chat
-          </h1>
-        </div>
-        <ThemeToggle />
-      </header>
-      <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <ScrollArea className="flex-1" ref={scrollAreaRef}>
-            <div className="container mx-auto max-w-3xl space-y-6 p-4">
-              {messages.map(message => (
-                <ChatMessage key={message.id} message={message} />
-              ))}
-              {isLoading && (
-                <ChatMessage
-                  message={{
-                    id: 'loading',
-                    role: 'assistant',
-                    content: '',
-                    createdAt: new Date(),
-                  }}
-                  isLoading
-                />
-              )}
-            </div>
-          </ScrollArea>
-          <div className="border-t bg-background/95 p-4 backdrop-blur-sm">
-            <div className="container mx-auto max-w-3xl">
-              <ChatInput
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
+    <div className="flex flex-1 overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+          <div className="container mx-auto max-w-3xl space-y-6 p-4">
+            {messages.map(message => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
+            {isLoading && (
+              <ChatMessage
+                message={{
+                  id: 'loading',
+                  role: 'assistant',
+                  content: '',
+                  createdAt: new Date(),
+                }}
+                isLoading
               />
-            </div>
+            )}
           </div>
-        </main>
-        <aside className="w-1/3 border-l overflow-y-auto p-4">
-           <RequirementsDisplay requirements={requirements} />
-           <div className="mt-4 flex flex-col gap-2">
-           <Button
-                variant="outline"
-                onClick={handleFinalize}
-                disabled={isLoading || requirements.length === 0}
-                className="shrink-0"
-              >
-                <Code2 className="mr-2 h-4 w-4" />
-                Classify Requirements
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleGenerateStories}
-                disabled={isLoading || !hasBeenClassified}
-                className="shrink-0"
-              >
-                <Users className="mr-2 h-4 w-4" />
-                Generate User Stories
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleIdentifyStakeholders}
-                disabled={isLoading || requirements.length === 0}
-                className="shrink-0"
-              >
-                <UserCog className="mr-2 h-4 w-4" />
-                Identify Stakeholders
-              </Button>
-               <Button
-                variant="outline"
-                onClick={handleSpeakRequirements}
-                disabled={isLoading || requirements.length === 0}
-                className="shrink-0"
-              >
-                <Volume2 className="mr-2 h-4 w-4" />
-                Speak Requirements
-              </Button>
-           </div>
-        </aside>
-      </div>
+        </ScrollArea>
+        <div className="border-t bg-background/95 p-4 backdrop-blur-sm">
+          <div className="container mx-auto max-w-3xl">
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
+      </main>
+      <aside className="w-1/3 border-l overflow-y-auto p-4">
+         <RequirementsDisplay requirements={requirements} />
+         <div className="mt-4 flex flex-col gap-2">
+         <Button
+              variant="outline"
+              onClick={handleFinalize}
+              disabled={isLoading || requirements.length === 0}
+              className="shrink-0"
+            >
+              <Code2 className="mr-2 h-4 w-4" />
+              Classify Requirements
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleGenerateStories}
+              disabled={isLoading || !hasBeenClassified}
+              className="shrink-0"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Generate User Stories
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleIdentifyStakeholders}
+              disabled={isLoading || requirements.length === 0}
+              className="shrink-0"
+            >
+              <UserCog className="mr-2 h-4 w-4" />
+              Identify Stakeholders
+            </Button>
+             <Button
+              variant="outline"
+              onClick={handleSpeakRequirements}
+              disabled={isLoading || requirements.length === 0}
+              className="shrink-0"
+            >
+              <Volume2 className="mr-2 h-4 w-4" />
+              Speak Requirements
+            </Button>
+         </div>
+      </aside>
 
       {audioUrl && (
         <audio
