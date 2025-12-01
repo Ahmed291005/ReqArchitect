@@ -76,7 +76,12 @@ export function DataTable<TData extends Requirement, TValue>({
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text('Requirement Report', 14, 16);
+    let finalY = 0;
+    const pageMargin = 14;
+
+    // Report Title
+    doc.setFontSize(22);
+    doc.text('Requirement Report', pageMargin, 20);
 
     // Requirements Table
     (doc as any).autoTable({
@@ -86,24 +91,29 @@ export function DataTable<TData extends Requirement, TValue>({
             row.original.type,
             row.original.priority,
         ]),
-        startY: 22,
+        startY: 30,
         didDrawPage: function (data: any) {
           doc.setFontSize(18);
-          doc.text('Requirement Repository', 14, data.settings.margin.top);
-        }
+          doc.text('Requirement Repository', pageMargin, data.settings.margin.top);
+        },
+        margin: { top: 30 }
     });
 
-    let finalY = (doc as any).lastAutoTable.finalY || 10;
-    if (finalY > 250) {
-      doc.addPage();
-      finalY = 10;
+    finalY = (doc as any).lastAutoTable.finalY || 0;
+
+    const checkAndAddPage = () => {
+        if (finalY > 250) {
+            doc.addPage();
+            finalY = 0;
+        }
     }
 
     // User Stories
     if (userStories.length > 0) {
+      checkAndAddPage();
       const userStoriesBody = userStories.flatMap(story => [
         [`As a ${story.userPersona}, I want to ${story.feature}, so that ${story.benefit}.`],
-        ...story.acceptanceCriteria.map(ac => [`- ${ac}`]),
+        ...story.acceptanceCriteria.map(ac => [{ content: `- ${ac}`, styles: { cellPadding: {left: 5}}} ]),
         [' '] // Spacer row
       ]);
 
@@ -111,36 +121,31 @@ export function DataTable<TData extends Requirement, TValue>({
         startY: finalY + 15,
         head: [['User Stories']],
         body: userStoriesBody,
+        theme: 'plain',
         didDrawPage: function (data: any) {
-          if (data.pageNumber > 1) return;
-          doc.setFontSize(18);
-          doc.text('User Stories', 14, data.settings.margin.top);
+            doc.setFontSize(18);
+            doc.text('User Stories', pageMargin, data.settings.margin.top);
         },
-        theme: 'plain'
+        margin: { top: 30 }
       });
       finalY = (doc as any).lastAutoTable.finalY;
     }
     
-    if (finalY > 250) {
-        doc.addPage();
-        finalY = 10;
-    }
-
     // Stakeholders
     if (stakeholders.length > 0) {
+        checkAndAddPage();
         const stakeholdersBody = stakeholders.map(s => [s.role, s.description]);
         (doc as any).autoTable({
             startY: finalY + 15,
             head: [['Role', 'Description']],
             body: stakeholdersBody,
             didDrawPage: function (data: any) {
-              if (data.pageNumber > 1 && data.pageNumber !== (doc as any).internal.getNumberOfPages()) return;
               doc.setFontSize(18);
-              doc.text('Stakeholders', 14, data.settings.margin.top);
-            }
+              doc.text('Stakeholders', pageMargin, data.settings.margin.top);
+            },
+            margin: { top: 30 }
         });
     }
-
 
     doc.save('report.pdf');
   };
