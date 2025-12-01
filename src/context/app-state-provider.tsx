@@ -15,6 +15,8 @@ interface AppState {
   selectedRequirement: Requirement | null;
   setSelectedRequirement: React.Dispatch<React.SetStateAction<Requirement | null>>;
   updateRequirement: (updatedRequirement: Requirement) => void;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const AppStateContext = createContext<AppState | undefined>(undefined);
@@ -28,6 +30,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
   const [selectedRequirement, setSelectedRequirement] =
     useState<Requirement | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const updateRequirement = (updatedRequirement: Requirement) => {
     setRequirements(prev =>
@@ -49,6 +52,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         selectedRequirement,
         setSelectedRequirement,
         updateRequirement,
+        isSidebarOpen,
+        setIsSidebarOpen,
       }}
     >
       {children}

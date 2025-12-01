@@ -22,6 +22,7 @@ import {
 import { Badge } from '../ui/badge';
 import { useAppContext } from '@/context/app-state-provider';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 const initialMessages: Message[] = [
   {
@@ -94,6 +95,7 @@ export function ChatView() {
     setClassifiedRequirements,
     setUserStories,
     setStakeholders,
+    isSidebarOpen,
    } = useAppContext();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
@@ -252,7 +254,11 @@ export function ChatView() {
           </div>
         </div>
       </main>
-      <aside className="w-1/3 border-l overflow-y-auto p-4">
+      <aside className={cn(
+          'w-full md:w-1/3 border-l overflow-y-auto p-4 transition-transform transform md:translate-x-0',
+          isSidebarOpen ? 'translate-x-0' : 'translate-x-full',
+          'absolute md:relative right-0 top-0 h-full bg-background z-10 md:z-0'
+        )}>
          <RequirementsDisplay requirements={requirements} />
          <div className="mt-4 flex flex-col gap-2">
          <Button
