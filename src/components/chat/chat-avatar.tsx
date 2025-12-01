@@ -24,6 +24,7 @@ export function ChatAvatar({ role }: ChatAvatarProps) {
                 data-ai-hint={userAvatar.imageHint}
                 width={32}
                 height={32}
+                className='object-cover'
             />
         )}
         <AvatarFallback>
@@ -36,12 +37,10 @@ export function ChatAvatar({ role }: ChatAvatarProps) {
   return (
     <Avatar className="h-8 w-8 bg-primary text-primary-foreground">
         {botAvatar && (
-            <Image 
+            <AvatarImage 
                 src={botAvatar.imageUrl} 
                 alt={botAvatar.description} 
                 data-ai-hint={botAvatar.imageHint}
-                width={32}
-                height={32}
             />
         )}
       <AvatarFallback className="bg-primary text-primary-foreground">
