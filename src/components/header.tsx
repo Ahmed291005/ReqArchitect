@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bot, LayoutDashboard } from 'lucide-react';
+import { ClipboardList, LayoutDashboard, Bot } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -13,7 +13,7 @@ export function Header() {
     <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm">
       <div className="flex items-center gap-4">
         <Link href="/" className="flex items-center gap-2">
-          <Bot className="h-6 w-6 text-primary" />
+          <ClipboardList className="h-6 w-6 text-primary" />
           <h1 className="text-lg font-semibold tracking-tight font-headline">
             ReqArchitect
           </h1>
