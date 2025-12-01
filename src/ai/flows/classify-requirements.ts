@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Classifies a list of requirements into functional and non-functional categories.
+ * @fileOverview Classifies a list of requirements into functional, non-functional, domain, and inverse categories.
  *
  * - classifyRequirements - A function that classifies requirements.
  * - ClassifyRequirementsInput - The input type for the classifyRequirements function.
@@ -23,7 +23,7 @@ const ClassifyRequirementsOutputSchema = z.object({
     z.object({
       requirement: z.string().describe('The original requirement.'),
       type: z
-        .enum(['functional', 'non-functional'])
+        .enum(['functional', 'non-functional', 'domain', 'inverse'])
         .describe('The type of requirement.'),
     })
   ),
@@ -40,7 +40,12 @@ const prompt = ai.definePrompt({
   name: 'classifyRequirementsPrompt',
   input: {schema: ClassifyRequirementsInputSchema},
   output: {schema: ClassifyRequirementsOutputSchema},
-  prompt: `You are a business analyst. Your task is to classify a list of requirements into "functional" and "non-functional" types.
+  prompt: `You are a business analyst. Your task is to classify a list of requirements into "functional", "non-functional", "domain", and "inverse" types.
+
+- Functional requirements describe what the system should do.
+- Non-functional requirements describe how the system should perform (e.g., performance, security).
+- Domain requirements are constraints that come from the application's domain (e.g., industry standards, laws of physics).
+- Inverse requirements state what the system shall not do.
 
 Here are the requirements:
 
@@ -54,7 +59,7 @@ Classify each requirement and return a JSON object with the following format:
   "classifiedRequirements": [
     {
       "requirement": "The original requirement text",
-      "type": "functional" | "non-functional"
+      "type": "functional" | "non-functional" | "domain" | "inverse"
     },
     ...
   ]

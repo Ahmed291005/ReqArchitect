@@ -60,7 +60,7 @@ export const columns: ColumnDef<Requirement>[] = [
     cell: ({ row }) => {
         const type = row.getValue('type') as string;
         const variant = type === 'functional' ? 'outline' : 'secondary';
-        return <Badge variant={variant}>{type}</Badge>;
+        return <Badge variant={variant} className="capitalize">{type}</Badge>;
     },
   },
   {

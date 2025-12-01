@@ -79,7 +79,9 @@ export function EditRequirementDialog() {
             </Label>
             <Select
               value={editedRequirement.type}
-              onValueChange={(value: 'functional' | 'non-functional') =>
+              onValueChange={(
+                value: 'functional' | 'non-functional' | 'domain' | 'inverse'
+              ) =>
                 setEditedRequirement(prev =>
                   prev ? { ...prev, type: value } : null
                 )
@@ -91,6 +93,8 @@ export function EditRequirementDialog() {
               <SelectContent>
                 <SelectItem value="functional">Functional</SelectItem>
                 <SelectItem value="non-functional">Non-functional</SelectItem>
+                <SelectItem value="domain">Domain</SelectItem>
+                <SelectItem value="inverse">Inverse</SelectItem>
               </SelectContent>
             </Select>
           </div>
