@@ -6,7 +6,7 @@ import { AppStateProvider } from '@/context/app-state-provider';
 import { Header } from '@/components/header';
 
 export const metadata: Metadata = {
-  title: 'ReqBot Chat',
+  title: 'ReqArchitect Chat',
   description: 'Generate software requirements with AI',
 };
 

@@ -15,7 +15,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2">
           <Bot className="h-6 w-6 text-primary" />
           <h1 className="text-lg font-semibold tracking-tight font-headline">
-            ReqBot
+            ReqArchitect
           </h1>
         </Link>
         <nav className="hidden md:flex items-center gap-2">

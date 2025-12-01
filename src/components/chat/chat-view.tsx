@@ -28,7 +28,7 @@ const initialMessages: Message[] = [
     id: crypto.randomUUID(),
     role: 'assistant',
     content:
-      "Hello! I'm ReqBot, your personal business analyst. To start, please describe your application idea.",
+      "Hello! I'm ReqArchitect, your personal business analyst. To start, please describe your application idea.",
     createdAt: new Date(),
   },
 ];

@@ -1,6 +1,6 @@
-# ReqBot Chat 🤖
+# ReqArchitect Chat 🤖
 
-ReqBot Chat is an AI-powered business analyst assistant built with Next.js and Google's Gemini models via Genkit. It helps you brainstorm, generate, and refine software requirements through an intuitive conversational interface.
+ReqArchitect Chat is an AI-powered business analyst assistant built with Next.js and Google's Gemini models via Genkit. It helps you brainstorm, generate, and refine software requirements through an intuitive conversational interface.
 
 ## ✨ Features
 
@@ -33,8 +33,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/reqbot-chat.git
-   cd reqbot-chat
+   git clone https://github.com/your-username/reqarchitect-chat.git
+   cd reqarchitect-chat
    ```
 
 2. **Install NPM packages:**
