@@ -97,14 +97,14 @@ export function ChatView() {
    } = useAppContext();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { toast } = useToast();
   
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
+    if (viewportRef.current) {
+      viewportRef.current.scrollTo({
+        top: viewportRef.current.scrollHeight,
         behavior: 'smooth',
       });
     }
@@ -225,7 +225,7 @@ export function ChatView() {
   return (
     <div className="flex flex-1 overflow-hidden">
       <main className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+        <ScrollArea className="flex-1" viewportRef={viewportRef}>
           <div className="container mx-auto max-w-3xl space-y-6 p-4">
             {messages.map(message => (
               <ChatMessage key={message.id} message={message} />
