@@ -25,6 +25,8 @@ import type {
   Requirement,
   ClassifiedRequirement,
   Message,
+  UserStory,
+  Stakeholder,
 } from '@/lib/types';
 
 
@@ -77,4 +79,38 @@ export async function speakRequirements(
 ): Promise<SpeakRequirementsOutput> {
   const result = await speakRequirementsFlow({ requirements });
   return result;
+}
+
+export async function generateReport(
+  requirements: Requirement[],
+  classifiedRequirements: ClassifiedRequirement[]
+): Promise<{
+  classifiedResult: ClassifiedRequirement[];
+  userStories: UserStory[];
+  stakeholders: Stakeholder[];
+}> {
+  const requirementDescriptions = requirements.map(r => r.description);
+
+  // 1. Classify Requirements
+  const { classifiedRequirements: classifiedResult } =
+    await classifyRequirementsFlow({ requirements: requirementDescriptions });
+
+  // 2. Generate User Stories from newly classified requirements
+  const functionalRequirements = classifiedResult
+    .filter(r => r.type === 'functional')
+    .map(r => r.requirement);
+
+  const { userStories } =
+    functionalRequirements.length > 0
+      ? await generateUserStoriesFlow({
+          requirements: functionalRequirements,
+        })
+      : { userStories: [] };
+  
+  // 3. Identify Stakeholders
+  const { stakeholders } = await identifyStakeholdersFlow({
+    requirements: requirementDescriptions,
+  });
+
+  return { classifiedResult, userStories, stakeholders };
 }

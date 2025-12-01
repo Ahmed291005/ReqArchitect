@@ -3,17 +3,14 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   continueConversation,
-  classifyRequirements,
-  generateUserStories,
-  identifyStakeholders,
-  speakRequirements,
+  generateReport,
 } from '@/app/actions';
-import type { Message, ClassifiedRequirement } from '@/lib/types';
+import type { Message, Requirement } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { ChatMessage } from './chat-message';
-import { Code2, Bot, Users, UserCog, Volume2 } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Card,
@@ -24,7 +21,7 @@ import {
 } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { useAppContext } from '@/context/app-state-provider';
-import type { Requirement } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 const initialMessages: Message[] = [
   {
@@ -95,15 +92,14 @@ export function ChatView() {
     setRequirements,
     classifiedRequirements,
     setClassifiedRequirements,
+    setUserStories,
+    setStakeholders,
    } = useAppContext();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const router = useRouter();
   const { toast } = useToast();
-
-  const hasBeenClassified = classifiedRequirements.length > 0;
   
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -113,12 +109,6 @@ export function ChatView() {
       });
     }
   }, [messages, isLoading]);
-
-  useEffect(() => {
-    if (audioUrl && audioRef.current) {
-      audioRef.current.play();
-    }
-  }, [audioUrl]);
 
   const handleSendMessage = async (input: string) => {
     const userMessage: Message = {
@@ -172,88 +162,7 @@ export function ChatView() {
     }
   };
 
-  const handleFinalize = async () => {
-    if (requirements.length === 0) {
-      toast({
-        title: 'No requirements to classify',
-        description:
-          'Please describe your app idea first to generate some requirements.',
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await classifyRequirements(requirements);
-      const requirementMap = new Map(
-        result.classifiedRequirements.map(cr => [cr.requirement, cr.type])
-      );
-      
-      const updatedReqs = requirements.map(req => ({
-        ...req,
-        type: requirementMap.get(req.description) || req.type,
-      }));
-
-      setRequirements(updatedReqs);
-      setClassifiedRequirements(result.classifiedRequirements);
-
-      const assistantResponse: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content:
-          "I've classified the requirements and updated the repository. You can view the classified requirements on the Dashboard page or generate user stories from them.",
-        classifiedRequirements: result.classifiedRequirements,
-        createdAt: new Date(),
-      };
-      setMessages(prev => [...prev, assistantResponse]);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unknown error occurred.';
-      toast({
-        variant: 'destructive',
-        title: 'Classification Failed',
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGenerateStories = async () => {
-    if (classifiedRequirements.length === 0) {
-      toast({
-        title: 'No classified requirements',
-        description: 'Please classify the requirements first.',
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await generateUserStories(classifiedRequirements);
-      const assistantResponse: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content:
-          result.userStories.length > 0
-            ? "Here are the user stories I've generated based on the functional requirements:"
-            : 'There were no functional requirements to generate user stories from.',
-        userStories: result.userStories,
-        createdAt: new Date(),
-      };
-      setMessages(prev => [...prev, assistantResponse]);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unknown error occurred.';
-      toast({
-        variant: 'destructive',
-        title: 'Failed to Generate User Stories',
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleIdentifyStakeholders = async () => {
+  const handleGenerateReport = async () => {
     if (requirements.length === 0) {
       toast({
         title: 'No requirements to analyze',
@@ -264,22 +173,38 @@ export function ChatView() {
     }
     setIsLoading(true);
     try {
-      const result = await identifyStakeholders(requirements);
+      const { classifiedResult, userStories, stakeholders } = await generateReport(requirements, classifiedRequirements);
+      
+      const requirementMap = new Map(
+        classifiedResult.map(cr => [cr.requirement, cr.type])
+      );
+      
+      const updatedReqs = requirements.map(req => ({
+        ...req,
+        type: requirementMap.get(req.description) || req.type,
+      }));
+
+      setRequirements(updatedReqs);
+      setClassifiedRequirements(classifiedResult);
+      setUserStories(userStories);
+      setStakeholders(stakeholders);
+
       const assistantResponse: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content:
-          "Here are the potential stakeholders I've identified based on the requirements:",
-        stakeholders: result.stakeholders,
+          "I've generated a full report which includes classified requirements, user stories, and project stakeholders. You can now view this report on the Dashboard page.",
         createdAt: new Date(),
       };
       setMessages(prev => [...prev, assistantResponse]);
+      router.push('/dashboard');
+
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'An unknown error occurred.';
       toast({
         variant: 'destructive',
-        title: 'Failed to Identify Stakeholders',
+        title: 'Failed to Generate Report',
         description: errorMessage,
       });
     } finally {
@@ -287,37 +212,6 @@ export function ChatView() {
     }
   };
 
-  const handleSpeakRequirements = async () => {
-    if (requirements.length === 0) {
-      toast({
-        title: 'No requirements to speak',
-        description: 'Please generate some requirements first.',
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await speakRequirements(requirements);
-      setAudioUrl(result.audio);
-      const assistantResponse: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: "I'm reading the requirements out loud now.",
-        createdAt: new Date(),
-      };
-      setMessages(prev => [...prev, assistantResponse]);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unknown error occurred.';
-      toast({
-        variant: 'destructive',
-        title: 'Failed to generate audio',
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -354,51 +248,15 @@ export function ChatView() {
          <div className="mt-4 flex flex-col gap-2">
          <Button
               variant="outline"
-              onClick={handleFinalize}
+              onClick={handleGenerateReport}
               disabled={isLoading || requirements.length === 0}
               className="shrink-0"
             >
-              <Code2 className="mr-2 h-4 w-4" />
-              Classify Requirements
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleGenerateStories}
-              disabled={isLoading || !hasBeenClassified}
-              className="shrink-0"
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Generate User Stories
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleIdentifyStakeholders}
-              disabled={isLoading || requirements.length === 0}
-              className="shrink-0"
-            >
-              <UserCog className="mr-2 h-4 w-4" />
-              Identify Stakeholders
-            </Button>
-             <Button
-              variant="outline"
-              onClick={handleSpeakRequirements}
-              disabled={isLoading || requirements.length === 0}
-              className="shrink-0"
-            >
-              <Volume2 className="mr-2 h-4 w-4" />
-              Speak Requirements
+              <FileText className="mr-2 h-4 w-4" />
+              Generate Report
             </Button>
          </div>
       </aside>
-
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          onEnded={() => setAudioUrl(null)}
-          className="hidden"
-        />
-      )}
     </div>
   );
 }

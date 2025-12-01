@@ -1,13 +1,17 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import type { Requirement, ClassifiedRequirement } from '@/lib/types';
+import type { Requirement, ClassifiedRequirement, UserStory, Stakeholder } from '@/lib/types';
 
 interface AppState {
   requirements: Requirement[];
   setRequirements: React.Dispatch<React.SetStateAction<Requirement[]>>;
   classifiedRequirements: ClassifiedRequirement[];
   setClassifiedRequirements: React.Dispatch<React.SetStateAction<ClassifiedRequirement[]>>;
+  userStories: UserStory[];
+  setUserStories: React.Dispatch<React.SetStateAction<UserStory[]>>;
+  stakeholders: Stakeholder[];
+  setStakeholders: React.Dispatch<React.SetStateAction<Stakeholder[]>>;
   selectedRequirement: Requirement | null;
   setSelectedRequirement: React.Dispatch<React.SetStateAction<Requirement | null>>;
   updateRequirement: (updatedRequirement: Requirement) => void;
@@ -20,6 +24,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [classifiedRequirements, setClassifiedRequirements] = useState<
     ClassifiedRequirement[]
   >([]);
+  const [userStories, setUserStories] = useState<UserStory[]>([]);
+  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
   const [selectedRequirement, setSelectedRequirement] =
     useState<Requirement | null>(null);
 
@@ -36,6 +42,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setRequirements,
         classifiedRequirements,
         setClassifiedRequirements,
+        userStories,
+        setUserStories,
+        stakeholders,
+        setStakeholders,
         selectedRequirement,
         setSelectedRequirement,
         updateRequirement,

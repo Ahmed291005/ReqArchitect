@@ -34,16 +34,19 @@ import {
 import { Download, ChevronDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { useAppContext } from '@/context/app-state-provider';
+import type { UserStory, Stakeholder, Requirement } from '@/lib/types';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends Requirement, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const { userStories, stakeholders } = useAppContext();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -73,17 +76,73 @@ export function DataTable<TData, TValue>({
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text('Requirement Repository', 14, 16);
+    doc.text('Requirement Report', 14, 16);
+
+    // Requirements Table
     (doc as any).autoTable({
         head: [['Requirement', 'Classification', 'Priority']],
         body: table.getRowModel().rows.map(row => [
-            (row.original as any).description,
-            (row.original as any).type,
-            (row.original as any).priority,
+            row.original.description,
+            row.original.type,
+            row.original.priority,
         ]),
-        startY: 20,
+        startY: 22,
+        didDrawPage: function (data: any) {
+          doc.setFontSize(18);
+          doc.text('Requirement Repository', 14, data.settings.margin.top);
+        }
     });
-    doc.save('requirements.pdf');
+
+    let finalY = (doc as any).lastAutoTable.finalY || 10;
+    if (finalY > 250) {
+      doc.addPage();
+      finalY = 10;
+    }
+
+    // User Stories
+    if (userStories.length > 0) {
+      const userStoriesBody = userStories.flatMap(story => [
+        [`As a ${story.userPersona}, I want to ${story.feature}, so that ${story.benefit}.`],
+        ...story.acceptanceCriteria.map(ac => [`- ${ac}`]),
+        [' '] // Spacer row
+      ]);
+
+      (doc as any).autoTable({
+        startY: finalY + 15,
+        head: [['User Stories']],
+        body: userStoriesBody,
+        didDrawPage: function (data: any) {
+          if (data.pageNumber > 1) return;
+          doc.setFontSize(18);
+          doc.text('User Stories', 14, data.settings.margin.top);
+        },
+        theme: 'plain'
+      });
+      finalY = (doc as any).lastAutoTable.finalY;
+    }
+    
+    if (finalY > 250) {
+        doc.addPage();
+        finalY = 10;
+    }
+
+    // Stakeholders
+    if (stakeholders.length > 0) {
+        const stakeholdersBody = stakeholders.map(s => [s.role, s.description]);
+        (doc as any).autoTable({
+            startY: finalY + 15,
+            head: [['Role', 'Description']],
+            body: stakeholdersBody,
+            didDrawPage: function (data: any) {
+              if (data.pageNumber > 1 && data.pageNumber !== (doc as any).internal.getNumberOfPages()) return;
+              doc.setFontSize(18);
+              doc.text('Stakeholders', 14, data.settings.margin.top);
+            }
+        });
+    }
+
+
+    doc.save('report.pdf');
   };
 
   return (
@@ -101,7 +160,7 @@ export function DataTable<TData, TValue>({
         />
         <Button onClick={exportToPDF} variant="outline" className="ml-auto">
           <Download className="mr-2 h-4 w-4" />
-          Export PDF
+          Export Report as PDF
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
