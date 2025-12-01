@@ -178,11 +178,20 @@ export function ChatView() {
       const requirementMap = new Map(
         classifiedResult.map(cr => [cr.requirement, cr.type])
       );
+
+      const typeOrder: Record<string, number> = {
+        functional: 1,
+        'non-functional': 2,
+        domain: 3,
+        inverse: 4,
+      };
       
-      const updatedReqs = requirements.map(req => ({
-        ...req,
-        type: requirementMap.get(req.description) || req.type,
-      }));
+      const updatedReqs = requirements
+        .map(req => ({
+          ...req,
+          type: requirementMap.get(req.description) || req.type,
+        }))
+        .sort((a, b) => (typeOrder[a.type] || 99) - (typeOrder[b.type] || 99));
 
       setRequirements(updatedReqs);
       setClassifiedRequirements(classifiedResult);
