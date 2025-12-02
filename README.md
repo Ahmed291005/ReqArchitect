@@ -1,6 +1,6 @@
 # ReqArchitect Chat 🤖
 
-ReqArchitect Chat is an AI-powered business analyst assistant built with Next.js and Google's Gemini models via Genkit. It helps you brainstorm, generate, and refine software requirements through an intuitive conversational interface.
+ReqArchitect Chat is an AI assistant for software requirement gathering built with Next.js and Google's Gemini models via Genkit. It helps you brainstorm, generate, and refine software requirements through an intuitive conversational interface.
 
 ## ✨ Features
 
