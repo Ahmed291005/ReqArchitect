@@ -15,7 +15,7 @@ ReqArchitect Chat is an AI assistant for software requirement gathering built wi
 
 ## ✨ Interface
 
-<img width="1363" height="570" alt="image" src="https://github.com/user-attachments/assets/e8399fb5-908f-49c3-b9a0-634360f40c35" />
+<img width="866" height="399" alt="image" src="https://github.com/user-attachments/assets/7b5c8585-af90-4525-ab77-c254b85c13ee" />
 <img width="1363" height="570" alt="image" src="https://github.com/user-attachments/assets/31df0952-5eee-4c36-9f44-cbfbf3ec8f4f" />
 
 ## 🛠️ Tech Stack
