@@ -12,7 +12,11 @@ ReqArchitect Chat is an AI assistant for software requirement gathering built wi
 - **📄 Automated Reporting**: Generate a comprehensive report containing classified requirements, user stories, and stakeholders, which can be viewed on the dashboard and exported as a PDF.
 - **📱 Fully Responsive**: A clean and intuitive layout that works on both desktop and mobile devices.
 - **🎨 Light/Dark Mode**: Toggle between light and dark themes for your comfort.
-<img width="1361" height="627" alt="image" src="https://github.com/user-attachments/assets/c517c187-7212-4d56-a1c7-4e9b73a8f4db" />
+
+## ✨ Interface
+
+- **<img width="1361" height="627" alt="image" src="https://github.com/user-attachments/assets/c517c187-7212-4d56-a1c7-4e9b73a8f4db" />
+- **<img width="1363" height="570" alt="image" src="https://github.com/user-attachments/assets/31df0952-5eee-4c36-9f44-cbfbf3ec8f4f" />
 
 ## 🛠️ Tech Stack
 
