@@ -8,6 +8,9 @@ import { Header } from '@/components/header';
 export const metadata: Metadata = {
   title: 'ReqArchitect Chat',
   description: 'Generate software requirements with AI',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
