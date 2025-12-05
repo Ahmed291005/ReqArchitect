@@ -246,11 +246,20 @@ export function ChatView() {
           </div>
         </ScrollArea>
         <div className="border-t bg-background/95 p-4 backdrop-blur-sm">
-          <div className="container mx-auto max-w-3xl">
+          <div className="container mx-auto flex max-w-3xl flex-col gap-2">
             <ChatInput
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
             />
+            <Button
+              variant="outline"
+              onClick={handleGenerateReport}
+              disabled={isLoading || requirements.length === 0}
+              className="shrink-0"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Generate Report
+            </Button>
           </div>
         </div>
       </main>
@@ -260,17 +269,6 @@ export function ChatView() {
           'absolute md:relative right-0 top-0 h-full bg-background z-10 md:z-0'
         )}>
          <RequirementsDisplay requirements={requirements} />
-         <div className="mt-4 flex flex-col gap-2">
-         <Button
-              variant="outline"
-              onClick={handleGenerateReport}
-              disabled={isLoading || requirements.length === 0}
-              className="shrink-0"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Generate Report
-            </Button>
-         </div>
       </aside>
     </div>
   );
