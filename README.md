@@ -1,6 +1,6 @@
 # ReqArchitect Chat 🤖
 
-ReqArchitect Chat is an AI-powered business analyst assistant built with Next.js and Google's Gemini models via Genkit. It helps you brainstorm, generate, and refine software requirements through an intuitive conversational interface.
+ReqArchitect Chat is an AI assistant for software requirement gathering built with Next.js and Google's Gemini models via Genkit. It helps you brainstorm, generate, and refine software requirements through an intuitive conversational interface.
 
 ## ✨ Features
 
@@ -10,9 +10,13 @@ ReqArchitect Chat is an AI-powered business analyst assistant built with Next.js
 - **👤 User Story Generation**: Create well-formatted user stories from functional requirements, complete with user personas, features, benefits, and acceptance criteria.
 - **🤝 Stakeholder Identification**: Identify potential stakeholders and user roles based on the project requirements to get a better understanding of your target audience.
 - **📄 Automated Reporting**: Generate a comprehensive report containing classified requirements, user stories, and stakeholders, which can be viewed on the dashboard and exported as a PDF.
-- **🔊 Text-to-Speech**: Have your current list of requirements read out loud for better accessibility and review.
 - **📱 Fully Responsive**: A clean and intuitive layout that works on both desktop and mobile devices.
 - **🎨 Light/Dark Mode**: Toggle between light and dark themes for your comfort.
+
+## ✨ Interface
+
+<img width="1363" height="399" alt="image" src="https://github.com/user-attachments/assets/7b5c8585-af90-4525-ab77-c254b85c13ee" />
+<img width="1363" height="570" alt="image" src="https://github.com/user-attachments/assets/31df0952-5eee-4c36-9f44-cbfbf3ec8f4f" />
 
 ## 🛠️ Tech Stack
 
@@ -36,8 +40,8 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/reqarchitect-chat.git
-   cd reqarchitect-chat
+   git clone https://github.com/your-username/reqarchitect.git
+   cd reqarchitect
    ```
 
 2. **Install NPM packages:**
