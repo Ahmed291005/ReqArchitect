@@ -122,7 +122,7 @@ sequenceDiagram
     participant AppState as Global Context
     participant Genkit as AI Backend
 
-    User->>ChatView: Enters app idea (e.g., "A to-do list app")
+    User->>ChatView: Enters application idea (e.g., "LMS")
     ChatView->>ChatView: Adds user message to chat history
     ChatView->>Genkit: Calls continueConversation(history)
     Genkit->>Genkit: Processes history, generates requirements & follow-up question
